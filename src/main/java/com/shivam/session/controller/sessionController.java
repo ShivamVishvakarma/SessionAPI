@@ -1,20 +1,22 @@
 package com.shivam.session.controller;
 
 import com.shivam.session.Repository.SessionRepository;
+import com.shivam.session.dto.SessionRequest;
+import com.shivam.session.dto.SessionResponse;
 import com.shivam.session.entity.Session;
 import com.shivam.session.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api/sessions")
 public class sessionController {
 
     @Autowired
@@ -23,9 +25,15 @@ public class sessionController {
     @Autowired
     private SessionService sessionService;
 
-   @PostMapping("/session")
-    public Session saveClientDetails(@RequestBody Session session){
-         return sessionService.SaveClientdetails(session);
+    @PostMapping("/session")
+    public ResponseEntity<SessionResponse> saveClientDetails(@RequestBody SessionRequest sessionRequest) {
+        Session session = mapToEntity(sessionRequest);
+        Session savedSession = sessionService.SaveClientdetails(session);
+        if (savedSession != null) {
+            return new ResponseEntity<>(mapToResponse(savedSession), HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/cancel/{Sessionid}")
@@ -41,59 +49,48 @@ public class sessionController {
     }
 
     @PutMapping("/reschedule/{SessionId}")
-    public ResponseEntity<String> RescheduleSession(@PathVariable Long SessionId , @RequestParam LocalDateTime newtime){
-        Optional<Session> optionalSession = sessionRepository.findById(SessionId);
+    public ResponseEntity<String> RescheduleSession(@PathVariable Long SessionId, @RequestParam LocalDateTime newtime) {
 
-        if(optionalSession.isPresent()){
-            Session session = optionalSession.get();
-            LocalDateTime currentTime = LocalDateTime.now();
-
-            Duration timeDiff = Duration.between(currentTime , newtime);
-
-            if(timeDiff.toHours()>4){
-                session.setSessionTime(newtime);
-                sessionRepository.save(session);
-
-                return ResponseEntity.ok("Session is Rescheduled");
-            }else{
-                return ResponseEntity.badRequest().body("Session cannot be rescheduled");
-            }
+        boolean reschedules = sessionService.scheduleSesion(SessionId, newtime);
+        if (reschedules) {
+            return ResponseEntity.ok("Session is Rescheduled");
+        } else {
+            return ResponseEntity.badRequest().body("Session cannot be rescheduled");
         }
-        return ResponseEntity.notFound().build();
     }
 
+
     @PostMapping("/book_recurring")
-    public ResponseEntity<String> bookRecurringSession(@RequestParam Long mentorId ,
+    public ResponseEntity<String> bookRecurringSession(@RequestParam Long mentorId,
                                                        @RequestParam LocalDateTime Starttime,
-                                                       @RequestParam int frequency ,
+                                                       @RequestParam int frequency,
                                                        @RequestParam int durationmonths) {
 
-        List<LocalDateTime> sessionTime = calculateSessionSchedule(Starttime, frequency, durationmonths);
-
-        for (LocalDateTime Time : sessionTime) {
-            Session session = new Session();
-            session.setSessionTime(Time);
-            sessionRepository.save(session);
-        }
+        List<LocalDateTime> sessionTimes = sessionService.calculateSessionSchedule(Starttime, frequency, durationmonths);
         return ResponseEntity.ok("Recurring sessions have been booked.");
     }
 
-    private List<LocalDateTime> calculateSessionSchedule(LocalDateTime starttime, int frequency, int durationmonths) {
-        List<LocalDateTime>sessionTimes = new ArrayList<>();
-
-        LocalDateTime currenttime = starttime;
-
-        for (int i = 0; i < durationmonths; i++) {
-            for (int j = 0; j < frequency; j++) {
-                sessionTimes.add(currenttime);
-                currenttime = currenttime.plusWeeks(1);
-            }
-            currenttime = currenttime.plusMonths(1);
-        }
-
-        return sessionTimes;
-
+    private Session mapToEntity(SessionRequest sessionRequest) {
+        Session session = new Session();
+        session.setName(sessionRequest.getName());
+        session.setAge(sessionRequest.getAge());
+        session.setTypeofsession(sessionRequest.getTypeofsession());
+        session.setMentor(sessionRequest.getMentor());
+        session.setSessionTime(sessionRequest.getSessionTime());
+        return session;
     }
 
+    private SessionResponse mapToResponse(Session session) {
+        SessionResponse sessionResponse = new SessionResponse();
+        sessionResponse.setId(session.getId());
+        sessionResponse.setName(session.getName());
+        sessionResponse.setTypeofsession(session.getTypeofsession());
+        sessionResponse.setMentor(session.getMentor());
+        sessionResponse.setSessionTime(session.getSessionTime());
+        return sessionResponse;
+    }
 
 }
+
+
+

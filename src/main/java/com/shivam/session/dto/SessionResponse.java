@@ -1,28 +1,21 @@
-package com.shivam.session.entity;
+package com.shivam.session.dto;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Session {
+@Setter
+@Getter
+public class SessionResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private Long id;
     private String Name;
-
-    private String Age;
 
     private String typeofsession;
 
@@ -31,6 +24,4 @@ public class Session {
     private LocalDateTime sessionTime;
 
     private boolean isCanceled;
-
-
 }
