@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 public class SessionResponse {
 
-
     private Long id;
     private String Name;
 
