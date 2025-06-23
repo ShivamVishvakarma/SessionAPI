@@ -81,9 +81,26 @@ public class serviceimpl implements SessionService {
             }
             currenttime = currenttime.plusMonths(1);
         }
-
         return sessionTimes;
+    }
 
+    @Override
+    public Session getSessionDetails(Long sessionId) {
+        Optional<Session> optionalSession = sessionRepository.findById(sessionId);
+        if (optionalSession.isPresent()) {
+            return optionalSession.get();
+        } else {
+            return null;
+        }
+    }
 
+    @Override
+    public List<Session> getAllSessions() {
+        List<Session> sessions = sessionRepository.findAll();
+        if (!sessions.isEmpty()) {
+            return sessions;
+        } else {
+            return new ArrayList<>();
+        }
     }
 }

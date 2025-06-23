@@ -22,6 +22,8 @@ public class User {
 
     private String Phone;
 
+    private String loginName;
+
 
 
 }

@@ -57,6 +57,15 @@ public class sessionController {
         }
     }
 
+    public ResponseEntity<String> getSessionDetails(@RequestParam Long SessionId) {
+        Session session = sessionService.getSessionDetails(SessionId);
+        if (session != null) {
+            return ResponseEntity.ok("Session details retrieved successfully.");
+        } else {
+            return ResponseEntity.badRequest().body("Unable to retrieve session details.");
+        }
+    }
+
 
     @PostMapping("/book_recurring")
     public ResponseEntity<String> bookRecurringSession(@RequestParam Long mentorId,
@@ -66,6 +75,15 @@ public class sessionController {
 
         List<LocalDateTime> sessionTimes = sessionService.calculateSessionSchedule(Starttime, frequency, durationmonths);
         return ResponseEntity.ok("Recurring sessions have been booked.");
+    }
+
+    public ResponseEntity<List<SessionResponse>> getAllSessions(){
+        List<Session> sessions = sessionService.getAllSessions();
+        if (sessions != null && !sessions.isEmpty()) {
+            return ResponseEntity.ok(sessions.stream().map(this::mapToResponse).toList());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     private Session mapToEntity(SessionRequest sessionRequest) {

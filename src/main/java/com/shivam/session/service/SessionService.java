@@ -15,4 +15,8 @@ public interface SessionService {
    boolean scheduleSesion(Long sessionId, LocalDateTime newtime);
 
    List<LocalDateTime> calculateSessionSchedule(LocalDateTime starttime, int frequency, int durationmonths);
+
+    Session getSessionDetails(Long sessionId);
+
+    List<Session> getAllSessions();
 }
